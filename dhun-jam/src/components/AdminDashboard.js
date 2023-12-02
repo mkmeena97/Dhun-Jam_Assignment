@@ -4,7 +4,7 @@ import Chart from 'chart.js/auto';
 
 let chart = null;
 
-const AdminDashboard = ({ token }) => {
+const AdminDashboard = () => {
   const [data, setData] = useState(null);
   const [customAmount, setCustomAmount] = useState(0);
   const [regularAmounts, setRegularAmounts] = useState([0, 0, 0, 0]);
@@ -15,20 +15,19 @@ const AdminDashboard = ({ token }) => {
   const chartRef = React.createRef();
 
   useEffect(() => {
-    if (token) {
-      fetchAdminDetails();
-    } else {
-      navigate('/login');
-    }
-  }, [token, navigate]);
+    fetchAdminDetails();
+  }, []);
 
   useEffect(() => {
     updateChart();
   }, [data, customAmount, regularAmounts]);
 
+  const id = parseInt(localStorage.getItem("id"));
+  const token = localStorage.getItem("token");
+
   const fetchAdminDetails = async () => {
     try {
-      const response = await fetch(`https://stg.dhunjam.in/account/admin/${token}`, {
+      const response = await fetch(`https://stg.dhunjam.in/account/admin/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -97,66 +96,83 @@ const AdminDashboard = ({ token }) => {
   };
 
   const updateChart = () => {
-    const ctx = chartRef.current.getContext('2d');
-    
-    if (chart) {
-      chart.destroy();
-    }
+    const ctx = chartRef.current?.getContext('2d');
 
-    chart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: ['Custom Amount', 'Category 7', 'Category 8', 'Category 9', 'Category 10'],
-        datasets: [
-          {
-            label: 'Amounts',
-            data: [customAmount, ...regularAmounts],
-            backgroundColor: [
-              'rgba(75, 192, 192, 0.2)',
-              'rgba(255, 99, 132, 0.2)',
-              'rgba(255, 205, 86, 0.2)',
-              'rgba(54, 162, 235, 0.2)',
-              'rgba(153, 102, 255, 0.2)',
-            ],
-            borderColor: [
-              'rgba(75, 192, 192, 1)',
-              'rgba(255, 99, 132, 1)',
-              'rgba(255, 205, 86, 1)',
-              'rgba(54, 162, 235, 1)',
-              'rgba(153, 102, 255, 1)',
-            ],
-            borderWidth: 1,
-          },
-        ],
-      },
-      options: {
-        scales: {
-          y: {
-            beginAtZero: true,
+    if (ctx) {
+      if (chart) {
+        chart.destroy();
+      }
+
+      chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Custom Amount', 'Category 7', 'Category 8', 'Category 9', 'Category 10'],
+          datasets: [
+            {
+              label: 'Amounts',
+              data: [customAmount, ...regularAmounts],
+              backgroundColor: [
+                'rgba(75, 192, 192, 0.2)',
+                'rgba(255, 99, 132, 0.2)',
+                'rgba(255, 205, 86, 0.2)',
+                'rgba(54, 162, 235, 0.2)',
+                'rgba(153, 102, 255, 0.2)',
+              ],
+              borderColor: [
+                'rgba(75, 192, 192, 1)',
+                'rgba(255, 99, 132, 1)',
+                'rgba(255, 205, 86, 1)',
+                'rgba(54, 162, 235, 1)',
+                'rgba(153, 102, 255, 1)',
+              ],
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true,
+            },
           },
         },
-      },
-    });
+      });
+    }
   };
 
   return (
-    <div>
+    <div className="container">
       {data && (
         <>
-          <h1>{data.name}</h1>
-          <h2>{data.location}</h2>
-
+          <p>{data.name}, {data.location} on Dhun Jam</p>
           <div>
             <label>
               Do you want to charge your customers for requesting songs?
-              <input
-                type="checkbox"
-                checked={chargeCustomers}
-                onChange={handleChargeCustomersChange}
-              />
+              <div className="checkbox-container">
+                <label className="checkbox-label">
+                  <input
+                    type="radio"
+                    value="yes"
+                    checked={chargeCustomers}
+                    onChange={() => handleChargeCustomersChange(true)}
+                    className="radio-input"
+                  />
+                  Yes
+                </label>
+                <label className="checkbox-label">
+                  <input
+                    type="radio"
+                    value="no"
+                    checked={!chargeCustomers}
+                    onChange={() => handleChargeCustomersChange(false)}
+                    className="radio-input"
+                  />
+                  No
+                </label>
+              </div>
             </label>
           </div>
-
+  
           {chargeCustomers && (
             <>
               <div>
@@ -167,52 +183,47 @@ const AdminDashboard = ({ token }) => {
                     value={customAmount}
                     min="99"
                     onChange={handleCustomAmountChange}
+                    className="input-number"
                   />
                 </label>
               </div>
-
+  
               <div>
                 <label>
                   Regular song request amounts:
-                  <input
-                    type="number"
-                    value={regularAmounts[0]}
-                    min="79"
-                    onChange={(e) => handleRegularAmountChange(0, e)}
-                  />
-                  <input
-                    type="number"
-                    value={regularAmounts[1]}
-                    min="59"
-                    onChange={(e) => handleRegularAmountChange(1, e)}
-                  />
-                  <input
-                    type="number"
-                    value={regularAmounts[2]}
-                    min="39"
-                    onChange={(e) => handleRegularAmountChange(2, e)}
-                  />
-                  <input
-                    type="number"
-                    value={regularAmounts[3]}
-                    min="19"
-                    onChange={(e) => handleRegularAmountChange(3, e)}
-                  />
+                  {regularAmounts.map((amount, index) => (
+                    <input
+                      key={index}
+                      type="number"
+                      value={amount}
+                      min="1"
+                      onChange={(e) => handleRegularAmountChange(index, e)}
+                      className="input-number"
+                      style={{
+                        border: '1px solid #ffffff',
+                        padding: '10px',
+                        margin: '5px 5px',
+                        borderRadius: '10px',
+                        width: '10%',
+                        display: 'inline-block',
+                      }}
+                    />
+                  ))}
                 </label>
               </div>
-
-              <button onClick={handleSave} disabled={!isSaveButtonEnabled}>
-                Save
-              </button>
             </>
           )}
-
-          {/* Render the canvas element for the chart */}
-          <canvas ref={chartRef} width="400" height="200"></canvas>
+  
+          <canvas ref={chartRef} width="400" height="200" className="chart-canvas"></canvas>
+  
+          <button onClick={handleSave} disabled={!isSaveButtonEnabled} className="save-button">
+            Save
+          </button>
         </>
       )}
     </div>
-  );
+  );  
 };
+
 
 export default AdminDashboard;
