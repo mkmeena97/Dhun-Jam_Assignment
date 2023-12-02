@@ -7,7 +7,6 @@ function App() {
   return (
     <div>
       <Routes>
-        {/* Define routes for Login and AdminDashboard */}
         <Route path="/" element={<Login />} />
         <Route path="/adminDashboard" element={<AdminDashboard />} />
       </Routes>
